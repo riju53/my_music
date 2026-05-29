@@ -63,4 +63,4 @@ if st.button("Generate Music"):
 
             except Exception as e:
                 st.error(f"Error: {e}")
-```
+
