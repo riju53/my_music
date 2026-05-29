@@ -9,3 +9,5 @@ soundfile=0.12.1
 sentencepiece=0.2.0
 streamlit=1.35.0
 numpy=1.26.0
+streamlit==1.35.0
+huggingface_hub==0.23.4
