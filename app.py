@@ -1,6 +1,5 @@
 import streamlit as st
 from huggingface_hub import InferenceClient
-import os
 
 # -----------------------------
 # Hugging Face API Setup
@@ -8,7 +7,6 @@ import os
 HF_TOKEN = "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"
 
 client = InferenceClient(
-    provider="hf-inference",
     api_key=HF_TOKEN
 )
 
@@ -34,18 +32,22 @@ if st.button("Generate Music"):
 
     if prompt.strip() == "":
         st.warning("Please enter a music prompt.")
+
     else:
         with st.spinner("Generating music..."):
 
             try:
                 # Generate Audio
-                audio = client.text_to_audio(prompt)
+                audio_bytes = client.text_to_audio(
+                    prompt,
+                    model="facebook/musicgen-small"
+                )
 
                 # Save Audio File
-                output_file = "music.flac"
+                output_file = "music.wav"
 
                 with open(output_file, "wb") as f:
-                    f.write(audio)
+                    f.write(audio_bytes)
 
                 st.success("Music generated successfully!")
 
@@ -57,10 +59,9 @@ if st.button("Generate Music"):
                     st.download_button(
                         label="Download Music",
                         data=file,
-                        file_name="generated_music.flac",
-                        mime="audio/flac"
+                        file_name="generated_music.wav",
+                        mime="audio/wav"
                     )
 
             except Exception as e:
-                st.error(f"Error: {e}")
-
+                st.error(f"Error: {str(e)}")
