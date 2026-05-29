@@ -1,11 +1,10 @@
-
 import streamlit as st
 import requests
 
 # -----------------------------
 # Hugging Face API Setup
 # -----------------------------
-API_TOKEN = "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"
+API_TOKEN = st.secrets["HUGGINGFACEHUB_API_TOKEN"]
 
 API_URL = "https://api-inference.huggingface.co/models/facebook/musicgen-small"
 
@@ -25,6 +24,7 @@ st.title("🎵 AI Music Generator")
 
 st.write("Generate music from text prompts using Hugging Face")
 
+# User Input
 prompt = st.text_area(
     "Enter your music prompt",
     placeholder="Example: Relaxing piano music for meditation"
@@ -39,6 +39,7 @@ if st.button("Generate Music"):
         st.warning("Please enter a music prompt.")
 
     else:
+
         with st.spinner("Generating music..."):
 
             try:
@@ -50,17 +51,27 @@ if st.button("Generate Music"):
                 response = requests.post(
                     API_URL,
                     headers=headers,
-                    json=payload
+                    json=payload,
+                    timeout=300
                 )
 
-                # Check API response
+                # -----------------------------
+                # Error Handling
+                # -----------------------------
                 if response.status_code != 200:
-                    st.error(f"API Error: {response.text}")
+
+                    try:
+                        error_message = response.json()
+                    except:
+                        error_message = response.text
+
+                    st.error(f"API Error: {error_message}")
 
                 else:
+
                     output_file = "music.wav"
 
-                    # Save audio
+                    # Save audio file
                     with open(output_file, "wb") as f:
                         f.write(response.content)
 
@@ -77,6 +88,12 @@ if st.button("Generate Music"):
                             file_name="generated_music.wav",
                             mime="audio/wav"
                         )
+
+            except requests.exceptions.Timeout:
+                st.error("Request timed out. Please try again.")
+
+            except requests.exceptions.ConnectionError:
+                st.error("Network connection error.")
 
             except Exception as e:
                 st.error(f"Error: {str(e)}")
