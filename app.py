@@ -1,12 +1,17 @@
+
 import streamlit as st
-from huggingface_hub import InferenceClient
+import requests
 
 # -----------------------------
 # Hugging Face API Setup
 # -----------------------------
-HF_TOKEN = "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"
+API_TOKEN = "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"
 
-client = InferenceClient(token=HF_TOKEN)
+API_URL = "https://api-inference.huggingface.co/models/facebook/musicgen-small"
+
+headers = {
+    "Authorization": f"Bearer {API_TOKEN}"
+}
 
 # -----------------------------
 # Streamlit UI
@@ -17,15 +22,17 @@ st.set_page_config(
 )
 
 st.title("🎵 AI Music Generator")
-st.write("Generate music from text prompts using Hugging Face AI")
 
-# User Input
+st.write("Generate music from text prompts using Hugging Face")
+
 prompt = st.text_area(
     "Enter your music prompt",
     placeholder="Example: Relaxing piano music for meditation"
 )
 
+# -----------------------------
 # Generate Button
+# -----------------------------
 if st.button("Generate Music"):
 
     if prompt.strip() == "":
@@ -35,31 +42,41 @@ if st.button("Generate Music"):
         with st.spinner("Generating music..."):
 
             try:
-                # Generate Audio
-                audio_bytes = client.text_to_audio(
-                    prompt,
-                    model="facebook/musicgen-small"
+
+                payload = {
+                    "inputs": prompt
+                }
+
+                response = requests.post(
+                    API_URL,
+                    headers=headers,
+                    json=payload
                 )
 
-                # Save Audio File
-                output_file = "music.wav"
+                # Check API response
+                if response.status_code != 200:
+                    st.error(f"API Error: {response.text}")
 
-                with open(output_file, "wb") as f:
-                    f.write(audio_bytes)
+                else:
+                    output_file = "music.wav"
 
-                st.success("Music generated successfully!")
+                    # Save audio
+                    with open(output_file, "wb") as f:
+                        f.write(response.content)
 
-                # Play Audio
-                st.audio(output_file)
+                    st.success("Music generated successfully!")
 
-                # Download Button
-                with open(output_file, "rb") as file:
-                    st.download_button(
-                        label="Download Music",
-                        data=file,
-                        file_name="generated_music.wav",
-                        mime="audio/wav"
-                    )
+                    # Play audio
+                    st.audio(output_file)
+
+                    # Download button
+                    with open(output_file, "rb") as file:
+                        st.download_button(
+                            label="Download Music",
+                            data=file,
+                            file_name="generated_music.wav",
+                            mime="audio/wav"
+                        )
 
             except Exception as e:
                 st.error(f"Error: {str(e)}")
