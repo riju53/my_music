@@ -6,9 +6,7 @@ from huggingface_hub import InferenceClient
 # -----------------------------
 HF_TOKEN = "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"
 
-client = InferenceClient(
-    api_key=HF_TOKEN
-)
+client = InferenceClient(token=HF_TOKEN)
 
 # -----------------------------
 # Streamlit UI
