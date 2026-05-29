@@ -5,7 +5,7 @@ import os
 # -----------------------------
 # Hugging Face API Setup
 # -----------------------------
-HF_TOKEN = "YOUR_HF_TOKEN"
+HF_TOKEN = "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"
 
 client = InferenceClient(
     provider="hf-inference",
