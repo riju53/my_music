@@ -5,7 +5,7 @@ import requests
 # -----------------------------
 # Hugging Face API Setup
 # -----------------------------
-API_TOKEN = "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"
+API_TOKEN = "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"
 
 API_URL = "https://api-inference.huggingface.co/models/facebook/musicgen-small"
 
