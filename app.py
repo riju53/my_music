@@ -9,7 +9,7 @@ HF_TOKEN = "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"
 
 client = InferenceClient(
     provider="hf-inference",
-    api_key=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,
+    api_key=HF_TOKEN
 )
 
 # -----------------------------
