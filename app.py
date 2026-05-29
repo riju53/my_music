@@ -1,64 +1,67 @@
-from transformers import pipeline
-from langchain.tools import Tool
-from langchain.agents import initialize_agent, AgentType
-from langchain.llms.base import LLM
-import scipy.io.wavfile as wavfile
-import torch
+```python
+import streamlit as st
+from huggingface_hub import InferenceClient
+import os
 
-# Load Music Generation Model
-music_generator = pipeline(
-    "text-to-audio",
-    model="facebook/musicgen-small",
-    device=0 if torch.cuda.is_available() else -1
+# -----------------------------
+# Hugging Face API Setup
+# -----------------------------
+HF_TOKEN = "YOUR_HF_TOKEN"
+
+client = InferenceClient(
+    provider="hf-inference",
+    api_key=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,
 )
 
-# Function to generate music
-def generate_music(prompt):
-    print(f"Generating music for: {prompt}")
-
-    output = music_generator(
-        prompt,
-        forward_params={"do_sample": True}
-    )
-
-    audio = output["audio"][0]
-    sampling_rate = output["sampling_rate"]
-
-    output_file = "generated_music.wav"
-
-    wavfile.write(output_file, rate=sampling_rate, data=audio)
-
-    return f"Music generated successfully: {output_file}"
-
-# Create LangChain Tool
-music_tool = Tool(
-    name="Music Generator",
-    func=generate_music,
-    description="Generate music from text prompts"
+# -----------------------------
+# Streamlit UI
+# -----------------------------
+st.set_page_config(
+    page_title="AI Music Generator",
+    page_icon="🎵"
 )
 
-# Simple Custom LLM Wrapper
-class DummyLLM(LLM):
-    @property
-    def _llm_type(self):
-        return "dummy"
+st.title("🎵 AI Music Generator")
+st.write("Generate music from text prompts using Hugging Face AI")
 
-    def _call(self, prompt, stop=None):
-        return prompt
-
-# Initialize Agent
-llm = DummyLLM()
-
-agent = initialize_agent(
-    tools=[music_tool],
-    llm=llm,
-    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-    verbose=True
+# User Input
+prompt = st.text_area(
+    "Enter your music prompt",
+    placeholder="Example: Relaxing piano music for meditation"
 )
 
-# Run Agent
-response = agent.run(
-    "Generate relaxing lo-fi music for studying"
-)
+# Generate Button
+if st.button("Generate Music"):
 
-print(response)
+    if prompt.strip() == "":
+        st.warning("Please enter a music prompt.")
+    else:
+        with st.spinner("Generating music..."):
+
+            try:
+                # Generate Audio
+                audio = client.text_to_audio(prompt)
+
+                # Save Audio File
+                output_file = "music.flac"
+
+                with open(output_file, "wb") as f:
+                    f.write(audio)
+
+                st.success("Music generated successfully!")
+
+                # Play Audio
+                st.audio(output_file)
+
+                # Download Button
+                with open(output_file, "rb") as file:
+                    st.download_button(
+                        label="Download Music",
+                        data=file,
+                        file_name="generated_music.flac",
+                        mime="audio/flac"
+                    )
+
+            except Exception as e:
+                st.error(f"Error: {e}")
+```
